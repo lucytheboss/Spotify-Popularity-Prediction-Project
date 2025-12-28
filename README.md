@@ -1,80 +1,75 @@
 # Spotify-Popularity-Prediction-Project
 
 ## 1. Project Overview
-이 프로젝트는 **"아티스트의 이전 흥행 성적이 다음 곡의 성공을 보장하는가?"** 라는 질문에서 시작되었습니다. Spotify Web API를 활용하여 2023년부터 2025년(예정 포함)까지의 음원 데이터를 수집하고, 아티스트별 시계열 트렌드를 분석했습니다. 특히 아티스트 고유의 인지도(Artist Fixed Effect)를 제거한 후, 순수한 곡(Track) 간의 성과 관계를 파악하기 위해 통계적 기법과 머신러닝 회귀 모델을 적용했습니다.
+This project began with the question: **"Does an artist's previous success guarantee the success of their next track?"**
+
+Using the Spotify Web API, I collected music data from 2023 to 2025 (including projected releases) to analyze time-series trends by artist. Specifically, I applied statistical techniques and machine learning regression models to identify the pure performance relationship between tracks (Tracks) after removing the artist's inherent awareness (Artist Fixed Effect).
 
 **🎯 Key Objectives**
-Spotify API를 활용한 대규모 음원 및 아티스트 메타 데이터 수집 (Web Scraping & API Handling)
-- **Feature Engineering**: 시차 변수(Lag features) 생성 및 아티스트별 평균 중심화(Centering)를 통한 편향 제거
-- **Statistical Analysis**: 상관관계 분석 (Pearson, Spearman) 및 OLS 회귀 분석
-- **Predictive Modeling**: 이전 곡의 성과를 기반으로 신곡의 성과를 예측하는 선형 회귀 모델 구축 (RMSE 평가)
+- **Web Scraping & API Handling**: Large-scale collection of track and artist metadata using the Spotify API.
+- **Feature Engineering**: Creation of Lag features and removal of bias through Artist Mean Centering.
+- **Statistical Analysis**: Correlation analysis (Pearson, Spearman) and OLS Regression.
+- **Predictive Modeling**: Building a linear regression model to predict a new track's performance based on previous track metrics (evaluated via RMSE).
 
 ## 2. Tech Stack & Tools
-Language: Python 3.14
-**Data Collection**: spotipy (Spotify Web API Wrapper)
-**Data Processing**: pandas, numpy
-**Visualization**: seaborn, matplotlib
-**Statistics & ML**: scikit-learn (LinearRegression, GroupKFold), statsmodels (OLS), scipy
+**Language**: Python 3.14
+**Data Collection**: `spotipy` (Spotify Web API Wrapper)
+**Data Processing**: `pandas`, `numpy`
+**Visualization**: `seaborn`, `matplotlib`
+**Statistics & ML**: `scikit-learn` (LinearRegression, GroupKFold), statsmodels (OLS), scipy
 
 ## 3. Data Collection & Preprocessing
 ### 3.1 Data Acquisition
-spotipy 라이브러리를 사용, 2023년~2025년 발매된 트랙 정보를 수집했습니다.
-- Track Data: 발매일, 인기도(Popularity), 트랙 ID
-- Artist Data: 팔로워 수, 장르, 아티스트 인기도
+Using the `spotipy` library, I collected information on tracks released between 2023 and 2025.
+- **Track Data**: Release date, Popularity, Track ID
+- **Artist Data**: Followers, Genre, Artist Popularity
 
 ### 3.2 Preprocessing & Feature Engineering
-데이터의 신뢰성을 높이기 위해 다음과 같은 전처리 과정을 거쳤습니다.
-- 결측치 제거 및 타입 변환: 발매일(date) 포맷 통일 및 NaN 데이터 처리.
-- **Lag Feature 생성**: prev_track_popularity 변수를 생성하여, 아티스트별로 바로 직전 발매된 곡의 인기도를 현재 데이터 행에 매핑했습니다.
-- **Mean Centering** : 단순 인기도는 아티스트의 체급(유명세)에 따라 결정되는 경향이 있습니다. 이를 보정하기 위해 **(개별 곡 인기도 - 아티스트 평균 인기도)**를 계산하여 popularity_centered 변수를 만들었습니다. 이를 통해 아티스트의 명성을 배제하고, 곡 자체의 상대적 성과만을 비교 분석했습니다.
+To improve data reliability, the following preprocessing steps were performed:
+- **Handling Missing Values & Type Conversion**: Standardized release date formats and handled NaN data.
+- **Lag Feature Generation**: Created a `prev_track_popularity` variable by mapping the popularity of the immediately preceding track to the current data row for each artist.
+- **Mean Centering**: Raw popularity tends to be heavily influenced by an artist's "stature" (fame). To correct for this, I created a `popularity_centered` variable by calculating (Individual Track Popularity - Artist Average Popularity). This eliminates the fame factor, allowing for a comparative analysis of the relative performance of the songs themselves.
+
 
 ## 4. Exploratory Data Analysis (EDA)
-데이터 시각화를 통해 변수 간의 관계를 확인했습니다.
-- Correlation Analysis: 이전 곡 인기도(prev)와 현재 곡 인기도(current) 사이에 강한 양의 상관관계(r≈0.84)가 관찰되었습니다.
-- Centered Analysis: 아티스트 효과를 제거한 후에도(r≈0.32), 이전 곡이 평소보다 잘 됐을 경우 다음 곡도 평소보다 잘 되는 경향("Momentum Effect")이 유의미하게 존재함을 확인했습니다.
-
-## 4. Exploratory Data Analysis (EDA)
-데이터의 전반적인 경향성을 파악하기 위해 직전 곡과 현재 곡의 인기도 상관관계를 분석했습니다.
+I analyzed the correlation between the popularity of the previous track and the current track to understand overall trends.
 
 ![Figure 1: Raw Popularity Correlation](./images/raw_correlation.png)
-> **Figure 1.** 아티스트의 고유 효과(Fixed Effect)를 제거하기 전의 산점도입니다. $r=0.84$의 매우 높은 상관관계를 보이나, 이는 아티스트의 인지도 편향(Bias)이 포함된 결과입니다.
+> **Figure 1.** Scatter plot before removing the Artist Fixed Effect. A very high correlation of $r=0.84$ is observed, but this result includes the bias of the artist's existing popularity.
+
+
 ### 4.1 De-biasing: Mean Centering
-아티스트의 체급 차이에 의한 왜곡을 방지하기 위해, 아티스트별 평균 인기도를 0으로 중심화(Mean Centering)하여 `Relative Popularity` 변수를 생성했습니다.
+To prevent distortion caused by differences in artist stature, I centered the average popularity per artist to 0 to create the `Relative Popularity` variable.
 
 ![Figure 2: Centered Popularity Trend](./images/centered_trend.png)
-> **Figure 2.** 아티스트 효과를 제거한 후의 회귀 분석 결과입니다. 상관계수는 $r=0.32$로 낮아졌지만, 여전히 유의미한 양의 상관관계(우상향)가 관찰됩니다. 이는 전작의 흥행이 후속작에 긍정적 모멘텀(Momentum)을 준다는 것을 시사합니다.
+> **Figure 2.** Regression results after removing the artist effect. The correlation coefficient dropped to $r=0.32$, but a significant positive correlation (upward trend) is still observed. This suggests that the success of a previous work provides positive Momentum to the subsequent work.
 
 
 ## 5. Modeling & Evaluation
-popularity_centered(상대적 인기도)를 예측하기 위해 선형 회귀 모델을 구축했습니다.
+I built a linear regression model to predict `popularity_centered` (Relative Popularity).
 
 **Validation Strategy: GroupKFold (n=5)**
-- 한 아티스트의 곡이 훈련셋과 테스트셋에 섞여 들어가는 데이터 누수(Leakage)를 방지하기 위해, 아티스트 단위로 데이터를 분리하여 검증했습니다.
+- To prevent **Data Leakage**—where songs from the same artist appear in both the training and test sets—I split the data by artist for validation.
 
 **Baselines:**
-- Baseline 0: 모든 예측값을 0(평균)으로 가정
-- Baseline 1: 이전 곡의 성과가 그대로 유지된다고 가정
+- Baseline 0: Assumes all predictions are 0 (the average).
+- Baseline 1: Assumes the previous track's performance is maintained exactly.
 
-**Model Result:**
 ## 5. Modeling Results
-시계열적 특성을 반영한 선형 회귀 모델(Lag Regression)을 구축하고, 5-Fold GroupKFold 교차 검증을 수행했습니다.
+I constructed a Linear Regression model reflecting time-series characteristics (Lag Regression) and performed 5-Fold GroupKFold cross-validation.
 
 | Model Type | Description | RMSE (Lower is Better) | Performance Gain |
 | :--- | :--- | :---: | :---: |
-| **Baseline (0)** | 모든 예측값을 0(평균)으로 가정 | 11.846 | - |
-| **Baseline (Prev)** | 전작의 성과가 그대로 유지된다고 가정 | 11.537 | +2.6% |
-| **Lag Regression** | **직전 곡의 성과를 변수로 활용 (Ours)** | **10.083** | **+14.9%** |
-| **Extended Model** | 장르 및 팔로워 수 변수 추가 | 10.120 | +14.6% |
+| **Baseline (0)** | Assumes all predictions are 0 (Mean) | 11.846 | - |
+| **Baseline (Prev)** | Assumes previous performance is maintained | 11.537 | +2.6% |
+| **Lag Regression** | **Uses previous track performance as a variable (Ours)** | **10.083** | **+14.9%** |
+| **Extended Model** | Adds Genre & Follower count variables | 10.120 | +14.6% |
 
-* **결과 해석**:
-    * 단순 평균이나 전작 유지를 가정한 Baseline 모델 대비, **Lag Regression 모델이 약 15% 더 낮은 오차율(RMSE)**을 기록했습니다.
-    * 흥미로운 점은 장르나 팔로워 수 같은 정적인 변수를 추가한 모델(Extended)보다, 단순히 **'직전 곡의 성과'**만 본 모델이 성능이 더 좋거나 비슷했다는 점입니다. 이는 단기 예측에서 **모멘텀(Momentum)**이 가장 강력한 변수임을 증명합니다.
-  
-Lag Regression Model이 RMSE 10.08을 기록하며, Baseline(RMSE 11.5~11.8) 대비 약 13~15% 성능 향상을 보였습니다.
-
-추가적으로 장르(Genre)와 팔로워 수(Followers) 변수를 투입했으나, 성능 향상은 미미했습니다(RMSE 10.12). 이는 '직전 곡의 성과'가 단기 예측에서 가장 강력한 변수임을 시사합니다.
+* **Interpretation:**
+- The Lag Regression model recorded an **RMSE of 10.083**, showing a **~15% performance improvement** compared to the Baseline models ($RMSE 11.5–11.8$).
+- Interestingly, the model focusing solely on the **"performance of the previous song"** performed better than or similar to the Extended Model, which included static variables like Genre or Followers. This proves that Momentum is the most powerful variable in short-term prediction.
 
 ## 6. Conclusion & Insights
-- **Momentum Exists**: 아티스트의 기본 체급을 제외하더라도, 전작의 흥행은 차기작의 성과에 긍정적인 영향을 미칩니다.
-- **Data Integrity**: 시계열 데이터 분석 시 아티스트별 그룹화와 시차(Lag) 데이터 처리가 모델 성능에 결정적인 역할을 함을 확인했습니다.
-- **Limitations**: 스트리밍 시장의 외부 요인(마케팅, 틱톡 바이럴 등)을 반영하지 못한 점은 추후 연구 과제입니다.
+- **Momentum Exists**: Even after excluding the artist's baseline fame, the success of a previous work has a positive impact on the performance of the next work.
+- **Data Integrity**: Confirmed that grouping by artist and handling Lag data are critical for model performance when analyzing time-series data.
+- **Limitations**: The inability to reflect external factors in the streaming market (marketing, TikTok virality, etc.) remains a task for future research.
