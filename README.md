@@ -32,7 +32,18 @@ spotipy 라이브러리를 사용, 2023년~2025년 발매된 트랙 정보를 �
 데이터 시각화를 통해 변수 간의 관계를 확인했습니다.
 - Correlation Analysis: 이전 곡 인기도(prev)와 현재 곡 인기도(current) 사이에 강한 양의 상관관계(r≈0.84)가 관찰되었습니다.
 - Centered Analysis: 아티스트 효과를 제거한 후에도(r≈0.32), 이전 곡이 평소보다 잘 됐을 경우 다음 곡도 평소보다 잘 되는 경향("Momentum Effect")이 유의미하게 존재함을 확인했습니다.
-<img width="1725" height="987" alt="image" src="https://github.com/user-attachments/assets/b00631c5-e675-4ed2-a840-8af51023bdba" />
+
+## 4. Exploratory Data Analysis (EDA)
+데이터의 전반적인 경향성을 파악하기 위해 직전 곡과 현재 곡의 인기도 상관관계를 분석했습니다.
+
+![Figure 1: Raw Popularity Correlation](./images/raw_correlation.png)
+> **Figure 1.** 아티스트의 고유 효과(Fixed Effect)를 제거하기 전의 산점도입니다. $r=0.84$의 매우 높은 상관관계를 보이나, 이는 아티스트의 인지도 편향(Bias)이 포함된 결과입니다.
+### 4.1 De-biasing: Mean Centering
+아티스트의 체급 차이에 의한 왜곡을 방지하기 위해, 아티스트별 평균 인기도를 0으로 중심화(Mean Centering)하여 `Relative Popularity` 변수를 생성했습니다.
+
+![Figure 2: Centered Popularity Trend](./images/centered_trend.png)
+> **Figure 2.** 아티스트 효과를 제거한 후의 회귀 분석 결과입니다. 상관계수는 $r=0.32$로 낮아졌지만, 여전히 유의미한 양의 상관관계(우상향)가 관찰됩니다. 이는 전작의 흥행이 후속작에 긍정적 모멘텀(Momentum)을 준다는 것을 시사합니다.
+
 
 ## 5. Modeling & Evaluation
 popularity_centered(상대적 인기도)를 예측하기 위해 선형 회귀 모델을 구축했습니다.
@@ -45,11 +56,25 @@ popularity_centered(상대적 인기도)를 예측하기 위해 선형 회귀 �
 - Baseline 1: 이전 곡의 성과가 그대로 유지된다고 가정
 
 **Model Result:**
+## 5. Modeling Results
+시계열적 특성을 반영한 선형 회귀 모델(Lag Regression)을 구축하고, 5-Fold GroupKFold 교차 검증을 수행했습니다.
+
+| Model Type | Description | RMSE (Lower is Better) | Performance Gain |
+| :--- | :--- | :---: | :---: |
+| **Baseline (0)** | 모든 예측값을 0(평균)으로 가정 | 11.846 | - |
+| **Baseline (Prev)** | 전작의 성과가 그대로 유지된다고 가정 | 11.537 | +2.6% |
+| **Lag Regression** | **직전 곡의 성과를 변수로 활용 (Ours)** | **10.083** | **+14.9%** |
+| **Extended Model** | 장르 및 팔로워 수 변수 추가 | 10.120 | +14.6% |
+
+* **결과 해석**:
+    * 단순 평균이나 전작 유지를 가정한 Baseline 모델 대비, **Lag Regression 모델이 약 15% 더 낮은 오차율(RMSE)**을 기록했습니다.
+    * 흥미로운 점은 장르나 팔로워 수 같은 정적인 변수를 추가한 모델(Extended)보다, 단순히 **'직전 곡의 성과'**만 본 모델이 성능이 더 좋거나 비슷했다는 점입니다. 이는 단기 예측에서 **모멘텀(Momentum)**이 가장 강력한 변수임을 증명합니다.
+  
 Lag Regression Model이 RMSE 10.08을 기록하며, Baseline(RMSE 11.5~11.8) 대비 약 13~15% 성능 향상을 보였습니다.
 
 추가적으로 장르(Genre)와 팔로워 수(Followers) 변수를 투입했으나, 성능 향상은 미미했습니다(RMSE 10.12). 이는 '직전 곡의 성과'가 단기 예측에서 가장 강력한 변수임을 시사합니다.
 
-6. Conclusion & Insights
+## 6. Conclusion & Insights
 - **Momentum Exists**: 아티스트의 기본 체급을 제외하더라도, 전작의 흥행은 차기작의 성과에 긍정적인 영향을 미칩니다.
 - **Data Integrity**: 시계열 데이터 분석 시 아티스트별 그룹화와 시차(Lag) 데이터 처리가 모델 성능에 결정적인 역할을 함을 확인했습니다.
 - **Limitations**: 스트리밍 시장의 외부 요인(마케팅, 틱톡 바이럴 등)을 반영하지 못한 점은 추후 연구 과제입니다.
