@@ -66,6 +66,8 @@ I constructed a Linear Regression model reflecting time-series characteristics (
 
 * **Interpretation:**
 - The Lag Regression model recorded an **RMSE of 10.083**, showing a **~15% performance improvement** compared to the Baseline models ($RMSE 11.5–11.8$).
+<p align="center"><img width="45%" alt="image" src="https://github.com/user-attachments/assets/50d5e394-bf1d-4d2c-a950-3f3421a51991" /></p>
+
 - Interestingly, the model focusing solely on the **"performance of the previous song"** performed better than or similar to the Extended Model, which included static variables like Genre or Followers. This proves that Momentum is the most powerful variable in short-term prediction.
 
 ## 6. Conclusion & Insights
