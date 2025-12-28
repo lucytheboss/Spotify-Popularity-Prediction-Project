@@ -1,4 +1,4 @@
-# Spotify-Popularity-Prediction-Project
+# Spotify-Popularity-Prediction-Project ![Spotify](https://img.shields.io/badge/Spotify-1ED760?style=flat&logo=spotify&logoColor=white)
 
 ## 1. Project Overview
 This project began with the question: **"Does an artist's previous success guarantee the success of their next track?"**
