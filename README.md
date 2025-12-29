@@ -103,6 +103,6 @@ CLIENT_SECRET = os.getenv('SPOTIPY_CLIENT_SECRET')
 
 Open the notebook:
 ```Bash
-jupyter notebook spotify2024-2025.ipynb
+jupyter notebook analysis.ipynb
 ```
 Run all cells to authenticate, fetch data, and generate the regression models and visualization plots.
