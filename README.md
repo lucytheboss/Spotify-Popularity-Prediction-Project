@@ -75,3 +75,34 @@ I constructed a Linear Regression model reflecting time-series characteristics (
 - **Momentum Exists**: Even after excluding the artist's baseline fame, the success of a previous work has a positive impact on the performance of the next work.
 - **Data Integrity**: Confirmed that grouping by artist and handling Lag data are critical for model performance when analyzing time-series data.
 - **Limitations**: The inability to reflect external factors in the streaming market (marketing, TikTok virality, etc.) remains a task for future research.
+
+---
+## 8. Installation & Usage
+
+### Prerequisites
+* Python 3.x
+* A Spotify Developer account (to obtain Client ID and Client Secret).
+
+### Installation
+1. Clone this repository.
+2. Install the required packages:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### Configuration
+Security Note: The notebook requires Spotify API credentials. Create a .env file or set environment variables to keep your keys secure.
+
+```Python
+# In the notebook, update the auth section:
+import os
+CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
+CLIENT_SECRET = os.getenv('SPOTIPY_CLIENT_SECRET')
+```
+### Running the Project
+
+Open the notebook:
+```Bash
+jupyter notebook spotify2024-2025.ipynb
+```
+Run all cells to authenticate, fetch data, and generate the regression models and visualization plots.
