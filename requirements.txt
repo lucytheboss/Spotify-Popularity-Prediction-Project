@@ -1,0 +1,8 @@
+spotipy
+pandas
+numpy
+requests
+matplotlib
+seaborn
+scipy
+statsmodels
