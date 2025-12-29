@@ -54,7 +54,7 @@ I built a linear regression model to predict `popularity_centered` (Relative Pop
 - Baseline 0: Assumes all predictions are 0 (the average).
 - Baseline 1: Assumes the previous track's performance is maintained exactly.
 
-## 5. Modeling Results
+## 6. Modeling Results
 I constructed a Linear Regression model reflecting time-series characteristics (Lag Regression) and performed 5-Fold GroupKFold cross-validation.
 
 | Model Type | Description | RMSE (Lower is Better) | Performance Gain |
@@ -71,7 +71,7 @@ I constructed a Linear Regression model reflecting time-series characteristics (
 
 - Interestingly, the model focusing solely on the **"performance of the previous song"** performed better than or similar to the Extended Model, which included static variables like Genre or Followers. This proves that Momentum is the most powerful variable in short-term prediction.
 
-## 6. Conclusion & Insights
+## 7. Conclusion & Insights
 - **Momentum Exists**: Even after excluding the artist's baseline fame, the success of a previous work has a positive impact on the performance of the next work.
 - **Data Integrity**: Confirmed that grouping by artist and handling Lag data are critical for model performance when analyzing time-series data.
 - **Limitations**: The inability to reflect external factors in the streaming market (marketing, TikTok virality, etc.) remains a task for future research.
